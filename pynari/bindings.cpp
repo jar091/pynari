@@ -141,6 +141,25 @@ PYBIND11_MODULE(pynari, m) {
   object.def("setParameterArray1D",  &pynari::Object::setArray1D_np);
   object.def("setParameterArray2D",  &pynari::Object::setArray2D_np);
   object.def("setParameterArray3D",  &pynari::Object::setArray3D_np);
+  /*! set FROM a python int value.
+
+    These MUST be registered before the float overloads below: pybind11
+    tries overloads in registration order, and its float caster accepts a
+    python int even in the first (no-conversion) pass. With the float
+    overloads first, setParameter('size',uint2,[w,h]) and
+    setParameter('pixelSamples',INT32,n) reach set_float2/set_float, which
+    throw "unsupported type ANARI_UINT32_VEC2 / ANARI_INT32". Registering
+    the integer overloads first sends python ints to them, while python
+    floats still reach the float overloads (they are rejected by the
+    integer casters in the first pass). */
+  object.def("setParameter",  &pynari::Object::set_ulong);
+
+  object.def("setParameter",  &pynari::Object::set_uint);
+  object.def("setParameter",  &pynari::Object::set_uint2);
+  object.def("setParameter",  &pynari::Object::set_uint3);
+  object.def("setParameter",  &pynari::Object::set_uint4);
+  object.def("setParameter",  &pynari::Object::set_uint_vec);
+
   /*! set FROM a python float value */
   object.def("setParameter",  &pynari::Object::set_float);
   /*! set FROM a python float tuple */
@@ -151,14 +170,6 @@ PYBIND11_MODULE(pynari, m) {
   object.def("setParameter",  &pynari::Object::set_float16);
   object.def("setParameter",  &pynari::Object::set_float_vec);
 
-  object.def("setParameter",  &pynari::Object::set_ulong);
-  
-  object.def("setParameter",  &pynari::Object::set_uint);
-  object.def("setParameter",  &pynari::Object::set_uint2);
-  object.def("setParameter",  &pynari::Object::set_uint3);
-  object.def("setParameter",  &pynari::Object::set_uint4);
-  object.def("setParameter",  &pynari::Object::set_uint_vec);
-  
   object.def("commitParameters", &pynari::Object::commit);
   object.def("release", &pynari::Object::release);
   // -------------------------------------------------------
