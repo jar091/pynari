@@ -184,6 +184,8 @@ if out_file_name == '':
     plt.show()
 else:
     im = PIL.Image.fromarray(pixels)
+    # ANARI frame rows start at the bottom; flip like the other samples
+    im = im.transpose(PIL.Image.FLIP_TOP_BOTTOM)
     print(f'@pynari: done. saving to {out_file_name}')
     im.convert('RGB').save(out_file_name)
 

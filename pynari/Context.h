@@ -99,6 +99,12 @@ namespace pynari {
     void set_ulong(const char *name,
                    int type,
                    uint64_t v);
+    void set_float(const char *name,
+                   int type,
+                   float v);
+    void set_string(const char *name,
+                    int type,
+                    const std::string &v);
     void commit();
 
     /*! this gets called if - and only if - the python app calls

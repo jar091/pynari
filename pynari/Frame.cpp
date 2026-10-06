@@ -47,8 +47,15 @@ namespace pynari {
   
   void Frame::render()
   {
+    const size_t errorsBefore = error_count();
     anariRenderFrame(device->handle, (ANARIFrame)handle);
     anariFrameReady(device->handle, (ANARIFrame)handle, ANARI_WAIT);
+    if (raise_on_error() && error_count() != errorsBefore) {
+      std::string message = "pynari: the device reported errors while rendering:";
+      for (const std::string &error : take_errors())
+        message += "\n  " + error;
+      throw std::runtime_error(message);
+    }
   }
 
   uint64_t Frame::map(const std::string &channel)

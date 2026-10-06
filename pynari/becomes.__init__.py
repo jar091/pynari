@@ -1,9 +1,14 @@
 from .pynari import newDevice
 
 from .pynari import has_cuda_capable_gpu
+from .pynari import error_count
+from .pynari import take_errors
+from .pynari import raise_on_error
+from .pynari import set_raise_on_error
 
 from .pynari import DATA_TYPE
 from .pynari import STRING
+from .pynari import BOOL
 from .pynari import OBJECT
 from .pynari import SURFACE
 from .pynari import GEOMETRY

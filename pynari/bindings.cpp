@@ -51,6 +51,7 @@ PYBIND11_MODULE(pynari, m) {
  
   m.attr("DATA_TYPE")     = py::int_((int)ANARI_DATA_TYPE);
   m.attr("STRING")        = py::int_((int)ANARI_STRING);
+  m.attr("BOOL")          = py::int_((int)ANARI_BOOL);
   m.attr("OBJECT")        = py::int_((int)ANARI_OBJECT);
   m.attr("SURFACE")       = py::int_((int)ANARI_SURFACE);
   m.attr("GEOMETRY")      = py::int_((int)ANARI_GEOMETRY);
@@ -243,7 +244,11 @@ PYBIND11_MODULE(pynari, m) {
   auto context
     = py::class_<pynari::Context,
                  std::shared_ptr<Context>>(m, "anari::Device");
+  // integer overload first (see the comment on Object::setParameter
+  // above); Python floats then reach set_float, str reaches set_string.
   context.def("setParameter",  &pynari::Context::set_ulong);
+  context.def("setParameter",  &pynari::Context::set_float);
+  context.def("setParameter",  &pynari::Context::set_string);
   context.def("commitParameters", &pynari::Context::commit);
   context.def("release", &pynari::Context::releaseFromApp);
   
@@ -251,6 +256,12 @@ PYBIND11_MODULE(pynari, m) {
   // // -------------------------------------------------------
 
   m.def("has_cuda_capable_gpu", &pynari::has_cuda_capable_gpu);
+  // ANARI error reporting: device errors are printed to stderr; these let
+  // scripts detect them (frame.render() raises when raise_on_error is set).
+  m.def("error_count", &pynari::error_count);
+  m.def("take_errors", &pynari::take_errors);
+  m.def("raise_on_error", &pynari::raise_on_error);
+  m.def("set_raise_on_error", &pynari::set_raise_on_error);
 
   context.def("newCamera",  &pynari::Context::newCamera);
   context.def("newGroup",   &pynari::Context::newGroup);

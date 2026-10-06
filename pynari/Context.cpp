@@ -35,6 +35,7 @@
 # include <dlfcn.h>
 #endif
 #include <algorithm>
+#include <mutex>
 #ifdef PYNARI_HAVE_CUDA
 # include <cuda_runtime.h>
 #endif
@@ -45,6 +46,84 @@
 
 namespace pynari {
 
+  /*! returns the value of PYNARI_LOG_LEVEL (or, for backwards
+      compatibility, PYNARI_DBG) as an integer; 0 if not set. Levels:
+      0 - only errors (default)
+      1 - also warnings (and pynari's own logging)
+      2 - also performance warnings and info messages
+      3 - also debug messages */
+  int readDebugEnvVar()
+  {
+    const char *flag = getenv("PYNARI_LOG_LEVEL");
+    if (!flag)
+      flag = getenv("PYNARI_DBG");
+    if (!flag || !*flag) return 0;
+    try {
+      return std::stoi(flag);
+    } catch (...) {
+      return 1;
+    }
+  }
+
+  int log_level()
+  {
+    static int cachedValue = readDebugEnvVar();
+    return cachedValue;
+  }
+
+  bool logging_enabled()
+  {
+    return log_level() > 0;
+  }
+
+  // Errors reported through the status callback. The callback has no
+  // per-device user data, so the record is process wide.
+  static std::mutex errorMutex;
+  static std::vector<std::string> recentErrors;
+  static size_t numErrors = 0;
+
+  static void recordError(const char *message)
+  {
+    std::lock_guard<std::mutex> lock(errorMutex);
+    ++numErrors;
+    recentErrors.emplace_back(message ? message : "");
+    if (recentErrors.size() > 100)
+      recentErrors.erase(recentErrors.begin());
+  }
+
+  size_t error_count()
+  {
+    std::lock_guard<std::mutex> lock(errorMutex);
+    return numErrors;
+  }
+
+  std::vector<std::string> take_errors()
+  {
+    std::lock_guard<std::mutex> lock(errorMutex);
+    std::vector<std::string> errors;
+    errors.swap(recentErrors);
+    return errors;
+  }
+
+  static bool &raiseOnErrorFlag()
+  {
+    static bool flag = [] {
+      const char *value = getenv("PYNARI_RAISE_ON_ERROR");
+      return value && *value && std::string(value) != "0";
+    }();
+    return flag;
+  }
+
+  bool raise_on_error()
+  {
+    return raiseOnErrorFlag();
+  }
+
+  void set_raise_on_error(bool enable)
+  {
+    raiseOnErrorFlag() = enable;
+  }
+
   static void statusFunc(const void * /*userData*/,
                          ANARIDevice /*device*/,
                          ANARIObject source,
@@ -53,21 +132,27 @@ namespace pynari {
                          ANARIStatusCode /*code*/,
                          const char *message)
   {
+#ifndef NDEBUG
+    const int level = std::max(log_level(), 3);
+#else
+    const int level = log_level();
+#endif
     if (severity == ANARI_SEVERITY_FATAL_ERROR) {
       fprintf(stderr, "[FATAL][%p] %s\n", source, message);
       std::exit(1);
     } else if (severity == ANARI_SEVERITY_ERROR) {
       fprintf(stderr, "[ERROR][%p] %s\n", source, message);
-#ifndef NDEBUG
-    } else if (severity == ANARI_SEVERITY_DEBUG) {
-      fprintf(stderr, "[DEBUG ][%p] %s\n", source, message);
-    } else if (severity == ANARI_SEVERITY_WARNING) {
+      recordError(message);
+    } else if (severity == ANARI_SEVERITY_WARNING && level >= 1) {
       fprintf(stderr, "[WARN ][%p] %s\n", source, message);
-    } else if (severity == ANARI_SEVERITY_PERFORMANCE_WARNING) {
+    } else if (severity == ANARI_SEVERITY_PERFORMANCE_WARNING && level >= 2) {
       fprintf(stderr, "[PERF ][%p] %s\n", source, message);
-#endif
+    } else if (severity == ANARI_SEVERITY_INFO && level >= 2) {
+      fprintf(stderr, "[INFO ][%p] %s\n", source, message);
+    } else if (severity == ANARI_SEVERITY_DEBUG && level >= 3) {
+      fprintf(stderr, "[DEBUG][%p] %s\n", source, message);
     }
-    // Ignore INFO/DEBUG messages
+    fflush(stderr);
   }
 
   bool has_cuda_capable_gpu() {
@@ -79,21 +164,6 @@ namespace pynari {
     return false;
   }
 
-  bool readDebugEnvVar()
-  {
-    char *flag = getenv("PYNARI_DBG");
-    if (!flag)
-      flag = getenv("PYNARI_LOG_LEVEL");
-    if (!flag) return false;
-    return std::stoi(flag);
-  }
-
-  bool logging_enabled()
-  {
-    static bool cachedValue = readDebugEnvVar();
-    return cachedValue;
-  }
-  
   anari::Device createDevice(std::string libName,
                              const std::string devName)
   {
@@ -395,6 +465,42 @@ namespace pynari {
     case ANARI_FLOAT32:
       return anari::setParameter(device->handle,device->handle,name,
                                  (float)v);
+    case ANARI_BOOL:
+      return anari::setParameter(device->handle,device->handle,name,
+                                 (bool)v);
+    default:
+      throw std::runtime_error
+        (std::string(__PRETTY_FUNCTION__)
+         +" unsupported type "+to_string((anari::DataType)type));
+    }
+  }
+
+  void Context::set_float(const char *name,
+                          int type,
+                          float v)
+  {
+    switch(type) {
+    case ANARI_FLOAT32:
+      return anari::setParameter(device->handle,device->handle,name,v);
+    default:
+      throw std::runtime_error
+        (std::string(__PRETTY_FUNCTION__)
+         +" unsupported type "+to_string((anari::DataType)type));
+    }
+  }
+
+  /*! device-level string parameters, e.g. vendor extensions that select
+      a backend or variant ('mitsuba.variant', 'computeDevice', ...);
+      like all device parameters they need a device.commitParameters()
+      to take effect */
+  void Context::set_string(const char *name,
+                           int type,
+                           const std::string &v)
+  {
+    switch(type) {
+    case ANARI_STRING:
+      return anari::setParameter(device->handle,device->handle,name,
+                                 v.c_str());
     default:
       throw std::runtime_error
         (std::string(__PRETTY_FUNCTION__)

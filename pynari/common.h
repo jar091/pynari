@@ -159,4 +159,14 @@ namespace pynari {
 # define OWL_TERMINAL_LIGHT_RED "\033[1;31m"
 #endif
 
+  /*! number of ANARI error messages any device has reported so far */
+  size_t error_count();
+  /*! returns the ANARI error messages reported since the last call (at
+      most the last 100) and forgets them */
+  std::vector<std::string> take_errors();
+  /*! whether Frame::render() raises a RuntimeError when the device reported
+      an error while rendering; initialized from PYNARI_RAISE_ON_ERROR */
+  bool raise_on_error();
+  void set_raise_on_error(bool enable);
+
 }

@@ -557,6 +557,9 @@ namespace pynari {
     case ANARI_FLOAT32:
       return anari::setParameter(device->handle,this->handle,name,
                                  (float)v);
+    case ANARI_BOOL:
+      return anari::setParameter(device->handle,this->handle,name,
+                                 (bool)v);
     default:
       throw std::runtime_error
         (std::string(__PRETTY_FUNCTION__)
@@ -588,6 +591,9 @@ namespace pynari {
     case ANARI_FLOAT32:
       return anari::setParameter(device->handle,this->handle,name,
                                  (float)v);
+    case ANARI_BOOL:
+      return anari::setParameter(device->handle,this->handle,name,
+                                 (bool)v);
     default:
       throw std::runtime_error
         (std::string(__PRETTY_FUNCTION__)

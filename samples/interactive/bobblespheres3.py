@@ -125,6 +125,9 @@ bg_values = np.array(((.9,.9,.9,1.),(.15,.25,.8,1.)), dtype=np.float32).reshape(
 bg_gradient = device.newArray2D(anari.float4, bg_values)
 renderer = device.newRenderer('default')
 renderer.setParameter('pixelSamples', anari.INT32, num_paths_per_pixel)
+# the scene has no lights: light it with the ambient light (its default
+# radiance is 0 in the ANARI specification)
+renderer.setParameter('ambientRadiance', anari.FLOAT32, 1.)
 renderer.setParameter('background', anari.ARRAY2D, bg_gradient)
 renderer.commitParameters()
 camera = device.newCamera('perspective')
