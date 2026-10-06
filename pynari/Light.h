@@ -1,5 +1,5 @@
 // ======================================================================== //
-// Copyright 2024++ Ingo Wald                                               //
+// Copyright 2024-2026 Ingo Wald                                            //
 //                                                                          //
 // Licensed under the Apache License, Version 2.0 (the "License");          //
 // you may not use this file except in compliance with the License.         //
@@ -25,9 +25,9 @@ namespace pynari {
     
     Light(Device::SP device,
           const std::string &type);
-    virtual ~Light();
+    ~Light() override;
     
-    std::string toString() const override { return "py_barn::Light"; }
+    std::string toString() const override;
     ANARIDataType anariType() const override { return ANARI_LIGHT; }
     
     const std::string type;

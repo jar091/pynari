@@ -14,24 +14,34 @@
 // limitations under the License.                                           //
 // ======================================================================== //
 
-#pragma once
-
-#include "pynari/common.h"
-#include "pynari/Geometry.h"
+#include "pynari/Volume.h"
 
 namespace pynari {
 
-  struct Geometry;
-  
-  struct Group : public Object {
-    typedef std::shared_ptr<Group> SP;
-    
-    Group(Device::SP device,
-          const py::list &list);
-    ~Group() override;
-    
-    std::string toString() const override { return "pynari::Group"; }
-    ANARIDataType anariType() const override { return ANARI_GROUP; }
-  };
+  Volume::Volume(Device::SP device,
+                 const std::string &type)
+    : Object(device),
+      type(type)
+  {
+    handle = anari::newObject<anari::Volume>(device->handle,type.c_str());
+  }
 
+  Volume::~Volume()
+  {
+    /* do NOT anariRelease() our handle here, for two reasons: First,
+       this should have been released already in 'releaseFromApp()',
+       when the app called pynari_object.release() (as it _should_
+       have done). Second, even if the app 'forgot' to do that we want
+       this to be detected and handled cleanly by device and parent
+       object:: code, so let's not interfere with this here. */
+    if (handle)
+      // this should always be called in the specific object's constructor, not here.
+      fallbackDestructAndWarn(toString());
+  }
+
+  std::string Volume::toString() const
+  { return "pynari::Volume"; }
+  
 }
+
+

@@ -28,9 +28,9 @@ namespace pynari {
     
     Instance(Device::SP device,
              const std::string &type);
-    virtual ~Instance() = default;
+    ~Instance() override;
 
-    std::string toString() const override { return "py_barn::Instance<"+type+">"; }
+    std::string toString() const override;
     ANARIDataType anariType() const override { return ANARI_INSTANCE; }
     
     const std::string type;

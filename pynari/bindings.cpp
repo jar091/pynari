@@ -1,5 +1,5 @@
 // ======================================================================== //
-// Copyright 2024 Ingo Wald                                                 //
+// Copyright 2024-2026 Ingo Wald                                            //
 //                                                                          //
 // Licensed under the Apache License, Version 2.0 (the "License");          //
 // you may not use this file except in compliance with the License.         //
@@ -129,7 +129,9 @@ PYBIND11_MODULE(pynari, m) {
                  std::shared_ptr<pynari::Object>>(m, "anari::Object");
   /*! set FROM a python pynari object */
   object.def("setParameter",  &pynari::Object::set_object);
+  object.def("setAndReleaseParameter",  &pynari::Object::set_and_release_object);
   object.def("setParameter",  &pynari::Object::set_object_notype);
+  object.def("setAndReleaseParameter",  &pynari::Object::set_and_release_object_notype);
   /*! set FROM a python string */
   object.def("setParameter",  &pynari::Object::set_string);
   object.def("setParameter",  &pynari::Object::set_string_notype);
@@ -171,7 +173,7 @@ PYBIND11_MODULE(pynari, m) {
   object.def("setParameter",  &pynari::Object::set_float_vec);
 
   object.def("commitParameters", &pynari::Object::commit);
-  object.def("release", &pynari::Object::release);
+  object.def("release", &pynari::Object::releaseFromApp);
   // -------------------------------------------------------
   auto camera
     = py::class_<pynari::Camera,pynari::Object,
@@ -243,6 +245,7 @@ PYBIND11_MODULE(pynari, m) {
                  std::shared_ptr<Context>>(m, "anari::Device");
   context.def("setParameter",  &pynari::Context::set_ulong);
   context.def("commitParameters", &pynari::Context::commit);
+  context.def("release", &pynari::Context::releaseFromApp);
   
   
   // // -------------------------------------------------------

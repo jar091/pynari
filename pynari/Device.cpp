@@ -1,5 +1,5 @@
 // ======================================================================== //
-// Copyright 2024-2024 Ingo Wald                                            //
+// Copyright 2024-2026 Ingo Wald                                            //
 //                                                                          //
 // Licensed under the Apache License, Version 2.0 (the "License");          //
 // you may not use this file except in compliance with the License.         //
@@ -17,39 +17,164 @@
 #include "pynari/Device.h"
 #include "pynari/Object.h"
 #include "pynari/Context.h"
+#include "pynari/Array.h"
 
 namespace pynari {
 
-  Device::~Device()
+  bool getFromEnv(const char *envVarName)
   {
-    PYNARI_TRACK_LEAKS(std::cout << "#pynari: ~Device wrapper is dying" << std::endl);
-    anari::release(this->handle,this->handle);
-    handle = {};
+    const char *env = std::getenv(envVarName);
+    if (!env) return false;
+    return std::stoi(env);
   }
   
-  void Device::release()
+  Device::Device(anari::Device handle)
+    : handle(handle),
+      warnMissingReleases(getFromEnv("PYNARI_WARN_MISSING_RELEASES"))
+  {}
+
+  Device::~Device()
   {
-    PYNARI_TRACK_LEAKS(std::cout << "#pynari: ~Device is dying" << std::endl);
-    if (!handle)
-      /* was already force-relased before, it's only the python object
-         that's till live -> don't do anything */
-      return;
+    // pynari wrapper object is dying; since this is a shared_ptr held
+    // by all objects _and_ by python itself this can, in theory, only
+    // happen if all objects have already been released _and_ python's
+    // garbage collection has killed the app's pynari device handle
+    // (our 'context'), too.
+    assert(listOfAllObjectsCreatedOnThisDevice.empty()
+           &&
+           "sanity check - thanks to refcounting device should "
+           "not ever die before all objects have died");
 
-    // make sure to release all objects _before_ the device itself
-    // gets released
-    std::set<Object *> copyOfCurrentObjects
-      = listOfAllObjectsCreatedOnThisDevice;
-    if (context->verbose)
-      std::cout << "#pynari: device being released - releasing "
-                << copyOfCurrentObjects.size() << " owned handles" << std::endl;
-    for (Object *obj : copyOfCurrentObjects)
-      obj->release();
+    // if the user behaved the way they should have then the device
+    // shuold have been explicitly released at some point in time. if
+    // so the 'handle' should already be null, and all objects should
+    // be released as well. in that case it's the python runtime's
+    // shared_ptr to this device that's dying last, and the actual
+    // anari device has already been released long before that
+    // happens. If this is NOT the case, this can only mean that the
+    // user forgot to call release() on the device, and left it for
+    // python's GC - this isn't the way it's intended, but let's clean
+    // up, anyway. Even _if_ that happens, though, this device object
+    // can only get deleted after all objects have already been
+    // deleted (because created objects store a shared-Ptr to this
+    // device), so even if python GC releases its objects i the
+    // 'wrong' order we should still die last - so all we have to do
+    // is release the dangling anari handle.
+    if (handle) {
+      if (warnMissingReleases) {
+        std::cout << "#pynari: warning - pynari device is dying without having been formally release()'d by the app." << std::endl;
+        std::cout << "#pynari: I'll properly release everything in the proper order, but according to anari spec" << std::endl;
+        std::cout << "#pynari: the app _should_ have formally released the device instead of just leaving it to" << std::endl;
+        std::cout << "#pynari: python's garbage collection." << std::endl;
+      }
+      // iw: mind this is only the 'fallback' release if the app
+      // didn't properly release the device. the 'real'/intended
+      // release is in Device::releaseFromApp().
+      anari::release(this->handle,this->handle);
+      handle = {};
+    }
+  }
+  
+    /*! this gets called if - and only if - the python app calls
+        anariDevice.release(). If so this will go over all the pynari
+        object still alive at this moment, and force-release their
+        anari handles (the pynari wrapper objects themselves are
+        refcoutned by python and may thus stay alive for a while
+        longer) */
+  void Device::releaseFromApp()
+  {
+    // this fct can only get called by an explicit release from the
+    // app. the only way the anari handle for this device could be
+    // null is if this same fct has been called before, which would be
+    // an error
+    if (handle == 0)
+      throw std::runtime_error("#pynari: python app release()'d the same device twice.");
 
+    // note we know the pynari device is still alive, so python must
+    // have at least one reference to this object - we know it cannot
+    // get deleted whiel running this function, even if some of the
+    // objects we store will die and decrease refcount.
+
+    if (!listOfAllObjectsCreatedOnThisDevice.empty()) {
+      if (pynari::verbose) {
+        std::cout << "#pynari: warning - user release()'d device, while there are still un-released objects that" << std::endl;
+        std::cout << "#pynari: were created on this device. I'll force-release those here, but the" << std::endl;
+        std::cout << "#pynari: cleaner way would have been to release all objects before releasing the device." << std::endl;
+        std::cout << "#pynari: for your info, found these still-alive objects:" << std::endl;
+        for (Object *obj : listOfAllObjectsCreatedOnThisDevice)
+          std::cout << " - " << obj->toString() << std::endl;
+      }
+
+      // let's create a copy of the list of still-alive objects, so we
+      // can iterate over these objects while the iterated-over
+      // objects remove themselves from that list.
+      std::set<Object *> copyOfCurrentObjects
+        = listOfAllObjectsCreatedOnThisDevice;
+      // now that we have this, tell these objects to relase their
+      // internal stuff (including their anari-handle _and_ their
+      // refcount to this device). Note we know that neither the
+      // object _nor_ outselves can get deleted in any of these
+      // operations: ours truly will lose refcounts from those
+      // objects, but the app must have at least one refcount to have
+      // called 'release()' through (so device cannot die); and the
+      // objects, too, cannot have garbage collected, yet, because
+      // otherwise they'd have removed themselves from this list
+      // already.
+      for (Object *obj : copyOfCurrentObjects)
+        obj->releaseInternalDataAndDeregisterOnDevice();
+    }
+    
     // and finally, release the device itself
-    if (context->verbose)
-      std::cout << "#pynari: releasing device" << std::endl;
+    if (pynari::verbose)
+      std::cout << "#pynari: releasing anari device" << std::endl;
     anari::release(this->handle,this->handle);
     handle = nullptr;
   }
+
+  std::shared_ptr<Array>
+  Device::newArray(int type, const py::buffer &buffer)
+  {
+    static bool warned = false;
+    if (warned == false) {
+      std::cout
+        << "#pynari: this python app using pynari just called Object::newArray()\n"
+        << "#pynari: due to some changes in the ANARI SDK these calls are now (starting\n"
+        << "#pynari: with v0.15) any such call should now be replaced with either\n"
+        << "#pynari: newArray1D, newArray2D, or newArray3D,\n"
+        << "#pynari: depending on what dimensionality the underlying array is\n"
+        << "#pynari: supposed to be. I'm trying my best to figure this out, but\n"
+        << "#pynari: the better way would be for the app to swtich to the new\n"
+        << "#pynari: intended behavior.\n"
+        ;
+      warned = true;
+    }
+    return newArray1D(type,buffer);
+  }
+
+  std::shared_ptr<Array>
+  Device::newArray1D(int type, const py::buffer &buffer)
+  {
+    return std::make_shared<Array>
+      (shared_from_this(),1,(anari::DataType)type,buffer);
+  }
   
+  std::shared_ptr<Array>
+  Device::newArray2D(int type, const py::buffer &buffer)
+  {
+    return std::make_shared<Array>
+      (shared_from_this(),2,(anari::DataType)type,buffer);
+  }
+  
+  std::shared_ptr<Array>
+  Device::newArray3D(int type, const py::buffer &buffer)
+  {
+    return std::make_shared<Array>
+      (shared_from_this(),3,(anari::DataType)type,buffer);
+  }
+  
+
+  
+  
+  
+
 }
