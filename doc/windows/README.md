@@ -46,10 +46,8 @@ Requirements:
 * ANARI SDK 0.17 installed in `F:\work\anari\install`
 
 ```bat
-git clone -b jar091/devel https://github.com/jar091/pynari F:\work\anari\pynari
-rem branch mjar/devel: the upstream master merged in, see section 4 (the merge is not committed)
-git -C F:\work\anari\pynari checkout -b mjar/devel
-git -C F:\work\anari\pynari merge --no-commit --no-ff origin/master
+rem branch mjar/devel: jar091/devel with the upstream master merged in, see section 4
+git clone -b mjar/devel https://github.com/jar091/pynari F:\work\anari\pynari
 
 rem Python environment with the build and sample dependencies
 D:\apps\Python313\python.exe -m venv F:\work\anari\build\pynari-venv
@@ -159,10 +157,10 @@ with albedo 0.5, lit only by an ambient light of radiance 1, has to render 0.5.
 
 ## 4. Changes to pynari
 
-These changes are in the working tree only and are not committed.
+These changes are committed on the `mjar/devel` branch.
 
-* **Merge with upstream `master`** (pynari 1.4.2, 9 commits). The branch is an uncommitted
-  merge of `origin/master` into `jar091/devel`; the changes below were re-applied on top
+* **Merge with upstream `master`** (pynari 1.4.2, 9 commits). The branch is a merge of
+  `origin/master` into `jar091/devel`; the changes below were re-applied on top
   without conflicts. Upstream brought:
   * A reworked object lifetime: `object.release()` and the new `device.release()` release
     the ANARI handles, and the device stays alive until its last object is gone.
