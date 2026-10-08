@@ -40,3 +40,6 @@ Session.vim
 __pycache__
 /bunny_cloud.vdb
 /Class 3 malocclusion
+
+!doc/windows/images/*.png
+!doc/windows/tools/build_pynari.ps1
