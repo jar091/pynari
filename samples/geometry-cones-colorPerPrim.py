@@ -121,6 +121,9 @@ else:
     
 mat.setParameter("baseColor",anari.STRING,"color")
 mat.commitParameters();
+# ANARI cones are open by default ('caps' = "none"); this model is built from
+# closed ones.
+cones.setParameter('caps', anari.STRING, 'both')
 cones.commitParameters()
 
 surface = device.newSurface()

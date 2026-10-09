@@ -122,6 +122,9 @@ mat.setParameter("baseColor",anari.float3,(.3,.3,.5))
 mat.setParameter("metallic",anari.float,.5)
 mat.setParameter("roughness",anari.float,.2)
 mat.commitParameters();
+# ANARI cones are open by default ('caps' = "none"); this model is built from
+# closed ones.
+cones.setParameter('caps', anari.STRING, 'both')
 cones.commitParameters()
 
 surface = device.newSurface()

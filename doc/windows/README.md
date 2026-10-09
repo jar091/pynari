@@ -192,6 +192,14 @@ These changes are committed on the `mjar/devel` branch.
   * `interactive/bobblespheres3.py` has no lights and relied on a default ambient light.
     It now sets `ambientRadiance` explicitly, because the default is 0 in the ANARI
     specification (VisRTX, Mitsuba and MoonRay rendered it black).
+  * `sample01_with_texture.py`: the second triangle of the quad was wound the other way
+    (`1, 2, 3` instead of `1, 3, 2`) and faced away from the camera and the light. barney
+    shades by the winding normal and rendered that half with ambient light only; the
+    other devices shade both sides.
+  * `geometry-cones*.py` and `geometry-cylinders*.py` now set `caps` to `both`. The
+    models are built from closed cones and cylinders, but `caps` defaults to `none` in the
+    ANARI specification: helide, barney, Visionaray and OSPRay closed them anyway, the
+    other devices rendered open tubes.
 * This documentation and the tools in `doc/windows/`.
 
 ## 5. Results
@@ -207,42 +215,42 @@ and `photon_cpu` ran alone.
 
 | sample | helide | visrtx | barney | cycles_optix | cycles_cpu | mitsuba_cuda | mitsuba_llvm | moonray | visionaray | visionaray_cuda | ospray | rpr | photon | photon_cpu |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| [camera-depth-of-field](images/camera-depth-of-field.png) | ok 2s | ok 5s | ok 4s | ok 4s | ok 6s | ok 6s | ok 7s | ok 26s | ok 14s | ok 12s | ok 8s | ok 10s | ok 4s | ok 13s |
-| [geometry-cones](images/geometry-cones.png) | ok 2s | ok 3s | ok 4s | ok 3s | ok 5s | ok 3s | ok 3s | ok 19s | ok 6s | ok 3s | ok 3s | ok 6s | ok 2s | ok 5s |
-| [geometry-cones-colorPerPrim](images/geometry-cones-colorPerPrim.png) | ok 2s | ok 4s | ok 5s | ok 3s | ok 6s | ok 3s | ok 3s | ok 15s | ok 4s | ok 3s | ok 5s | ok 6s | ok 2s | ok 4s |
-| [geometry-cones-colorPerVertex](images/geometry-cones-colorPerVertex.png) | ok 2s | ok 4s | ok 5s | ok 3s | ok 4s | ok 3s | ok 5s | ok 13s | ok 9s | ok 3s | ok 4s | ok 6s | ok 2s | ok 4s |
-| [geometry-cylinders](images/geometry-cylinders.png) | ok 1s | ok 3s | ok 4s | ok 3s | ok 4s | ok 3s | ok 4s | ok 6s | ok 6s | ok 3s | ok 4s | ok 6s | ok 2s | ok 4s |
-| [geometry-cylinders-colorPerPrim](images/geometry-cylinders-colorPerPrim.png) | ok 1s | ok 3s | ok 4s | ok 3s | ok 4s | ok 3s | ok 4s | ok 8s | ok 6s | ok 3s | ok 5s | ok 6s | ok 2s | ok 3s |
-| [geometry-cylinders-colorPerVertex](images/geometry-cylinders-colorPerVertex.png) | ok 1s | ok 3s | ok 4s | ok 3s | ok 4s | ok 3s | ok 3s | ok 6s | ok 5s | ok 3s | ok 4s | ok 6s | ok 2s | ok 3s |
-| [geometry-spheres-with-sampler1D](images/geometry-spheres-with-sampler1D.png) | ok 2s | ok 20s | ok 5s | ok 6s | ok 52s | ok 5s | ok 38s | ok 91s | ok 108s | ok 23s | ok 45s | ok 127s | ok 6s | ok 66s |
-| [geometry-triangles-testorb-np](images/geometry-triangles-testorb-np.png) | ok 2s | ok 7s | ok 6s | ok 5s | ok 39s | ok 4s | ok 13s | ok 323s | ok 66s | ok 14s | ok 30s | ok 11s | ok 4s | ok 29s |
-| [interactive-bobblespheres3](images/interactive-bobblespheres3.png) | ok 3s | ok 5s | ok 5s | ok 5s | ok 8s | ok 5s | ok 13s | ok 17s | ok 13s | ok 5s | ok 7s | ok 40s | ok 4s | ok 11s |
-| [reference-hdri](images/reference-hdri.png) | ok 1s | ok 4s | ok 4s | ok 4s | ok 11s | ok 3s | ok 8s | ok 26s | ok 28s | ok 4s | ok 12s | ok 7s | ok 2s | ok 10s |
-| sample-getInfo | ok 1s | ok 2s | ok 2s | ok 2s | ok 3s | ok 2s | ok 5s | ok 7s | ok 4s | ok 2s | ok 2s | ok 2s | ok 1s | ok 1s |
-| [sample01](images/sample01.png) | ok 1s | ok 3s | ok 4s | ok 4s | ok 6s | ok 3s | ok 6s | ok 30s | ok 13s | ok 4s | ok 6s | ok 8s | ok 2s | ok 11s |
-| [sample01_with_texture](images/sample01_with_texture.png) | ok 1s | ok 3s | ok 4s | ok 3s | ok 7s | ok 3s | ok 6s | ok 32s | ok 11s | ok 3s | ok 6s | ok 7s | ok 2s | ok 10s |
-| [sample02](images/sample02.png) | ok 2s | ok 4s | ok 5s | ok 4s | ok 13s | ok 5s | ok 6s | ok 34s | ok 23s | ok 7s | ok 9s | ok 10s | ok 3s | ok 13s |
-| [sample03](images/sample03.png) | ok 1s | ok 6s | ok 8s | ok 9s | ok 46s | ok 85s | ok 309s | ok 718s | ok 98s | ok 9s | ok 217s | ok 44s | ok 17s | ok 249s |
-| [sample03-isosurface](images/sample03-isosurface.png) | ok 1s | ok 14s | ok 11s | ok 4s | ok 12s | ok 4s | ok 21s | ok 90s | ok 123s | ok 4s | ok 59s | ok 32s | ok 5s | ok 72s |
-| [sample04](images/sample04.png) | ok 2s | ok 4s | ok 6s | ok 4s | ok 24s | ok 4s | ok 16s | ok 28s | ok 37s | ok 9s | ok 17s | ok 20s | ok 8s | ok 15s |
-| [sample04_pointLight](images/sample04_pointLight.png) | ok 3s | ok 4s | ok 5s | ok 4s | ok 21s | ok 4s | ok 14s | ok 27s | ok 36s | ok 9s | ok 10s | ok 33s | ok 8s | ok 15s |
-| [sample05](images/sample05.png) | ok 2s | ok 4s | ok 5s | ok 4s | ok 10s | ok 5s | ok 14s | ok 49s | ok 19s | ok 6s | ok 17s | ok 32s | ok 3s | ok 17s |
-| [sample06](images/sample06.png) | ok 1s | ok 2s | ok 3s | ok 3s | ok 5s | ok 3s | ok 6s | ok 27s | ok 10s | ok 3s | ok 6s | ok 27s | ok 2s | ok 5s |
-| [sample07](images/sample07.png) | ok 2s | ok 4s | ok 9s | ok 4s | ok 24s | ok 5s | ok 19s | ok 58s | ok 35s | ok 10s | ok 32s | ok 24s | ok 4s | ok 36s |
-| [sampler-image3d](images/sampler-image3d.png) | ok 2s | ok 5s | ok 8s | ok 4s | ok 15s | ok 2s | ok 18s | ok 282s | ok 50s | ok 4s | ok 38s | ok 66s | ok 4s | ok 62s |
-| [sampler-image3d-borderColor](images/sampler-image3d-borderColor.png) | ok 1s | ok 5s | ok 8s | ok 4s | ok 17s | ok 2s | ok 20s | ok 210s | ok 60s | ok 4s | ok 40s | ok 44s | ok 4s | ok 62s |
-| testing-release_00 | ok 1s | ok 1s | ok 17s | ok 1s | ok 2s | ok 1s | ok 3s | ok 3s | ok 13s | ok 2s | ok 6s | ok 3s | ok 0s | ok 1s |
-| testing-release_01 | ok 1s | ok 2s | ok 2s | ok 2s | ok 3s | ok 0s | ok 4s | ok 5s | ok 1s | ok 1s | ok 1s | ok 9s | ok 1s | ok 1s |
-| testing-release_02 | ok 1s | ok 2s | ok 2s | ok 2s | ok 2s | ok 0s | ok 3s | ok 3s | ok 2s | ok 1s | ok 2s | ok 2s | ok 0s | ok 1s |
-| testing-release_03 | ok 1s | ok 2s | ok 2s | ok 2s | ok 3s | ok 1s | ok 3s | ok 2s | ok 2s | ok 1s | ok 2s | ok 11s | ok 0s | ok 0s |
-| testing-release_04 | ok 1s | ok 2s | ok 2s | ok 2s | ok 2s | ok 1s | ok 3s | ok 2s | ok 1s | ok 1s | ok 2s | ok 3s | ok 1s | ok 0s |
-| testing-release_05 | ok 1s | ok 2s | ok 2s | ok 2s | ok 1s | ok 1s | ok 4s | ok 2s | ok 1s | ok 1s | ok 2s | ok 14s | ok 1s | ok 0s |
-| [unstructured-cellCentric](images/unstructured-cellCentric.png) | ok 1s | ok 2s | ok 5s | ok 8s | ok 44s | ok 4s | ok 26s | ok 20s | ok 44s | ok 17s | ok 10s | ok 18s | ok 2s | ok 7s |
-| [unstructured-vertexCentric](images/unstructured-vertexCentric.png) | ok 1s | ok 2s | ok 5s | ok 8s | ok 44s | ok 5s | ok 25s | ok 12s | ok 35s | ok 17s | ok 12s | ok 16s | ok 2s | ok 7s |
-| [viewer-sample01](images/viewer-sample01.png) | ok 1s | ok 2s | ok 3s | ok 2s | ok 2s | ok 2s | ok 3s | ok 3s | ok 1s | ok 1s | ok 2s | ok 15s | ok 1s | ok 1s |
-| [viewer-sample02](images/viewer-sample02.png) | ok 1s | ok 2s | ok 3s | ok 2s | ok 2s | ok 4s | ok 4s | ok 13s | ok 3s | ok 2s | ok 3s | ok 21s | ok 2s | ok 1s |
-| [viewer-sample05](images/viewer-sample05.png) | ok 1s | ok 2s | ok 2s | ok 2s | ok 3s | ok 3s | ok 6s | ok 3s | ok 4s | ok 1s | ok 3s | ok 7s | ok 1s | ok 1s |
-| [viewer-sample07](images/viewer-sample07.png) | ok 1s | ok 2s | ok 3s | ok 2s | ok 2s | ok 4s | ok 4s | ok 3s | ok 4s | ok 1s | ok 2s | ok 8s | ok 1s | ok 1s |
+| [camera-depth-of-field](images/camera-depth-of-field.png) | ok 2s | ok 5s | ok 4s | ok 4s | ok 6s | ok 3s | ok 4s | ok 19s | ok 12s | ok 10s | ok 6s | ok 10s | ok 4s | ok 13s |
+| [geometry-cones](images/geometry-cones.png) | ok 1s | ok 2s | ok 3s | ok 2s | ok 4s | ok 2s | ok 2s | ok 17s | ok 5s | ok 3s | ok 3s | ok 4s | ok 2s | ok 5s |
+| [geometry-cones-colorPerPrim](images/geometry-cones-colorPerPrim.png) | ok 3s | ok 3s | ok 4s | ok 2s | ok 4s | ok 2s | ok 2s | ok 10s | ok 6s | ok 3s | ok 3s | ok 6s | ok 2s | ok 6s |
+| [geometry-cones-colorPerVertex](images/geometry-cones-colorPerVertex.png) | ok 3s | ok 3s | ok 3s | ok 2s | ok 5s | ok 2s | ok 2s | ok 10s | ok 6s | ok 2s | ok 3s | ok 6s | ok 2s | ok 6s |
+| [geometry-cylinders](images/geometry-cylinders.png) | ok 1s | ok 2s | ok 2s | ok 2s | ok 4s | ok 2s | ok 2s | ok 13s | ok 5s | ok 2s | ok 3s | ok 4s | ok 2s | ok 6s |
+| [geometry-cylinders-colorPerPrim](images/geometry-cylinders-colorPerPrim.png) | ok 1s | ok 2s | ok 3s | ok 2s | ok 3s | ok 2s | ok 2s | ok 9s | ok 5s | ok 2s | ok 3s | ok 7s | ok 2s | ok 4s |
+| [geometry-cylinders-colorPerVertex](images/geometry-cylinders-colorPerVertex.png) | ok 1s | ok 2s | ok 3s | ok 2s | ok 4s | ok 2s | ok 2s | ok 9s | ok 4s | ok 2s | ok 3s | ok 5s | ok 2s | ok 5s |
+| [geometry-spheres-with-sampler1D](images/geometry-spheres-with-sampler1D.png) | ok 2s | ok 20s | ok 5s | ok 6s | ok 52s | ok 5s | ok 30s | ok 90s | ok 92s | ok 76s | ok 45s | ok 127s | ok 6s | ok 66s |
+| [geometry-triangles-testorb-np](images/geometry-triangles-testorb-np.png) | ok 2s | ok 7s | ok 6s | ok 5s | ok 39s | ok 3s | ok 9s | ok 345s | ok 64s | ok 26s | ok 28s | ok 11s | ok 4s | ok 29s |
+| [interactive-bobblespheres3](images/interactive-bobblespheres3.png) | ok 3s | ok 5s | ok 5s | ok 5s | ok 8s | ok 8s | ok 8s | ok 17s | ok 12s | ok 5s | ok 5s | ok 40s | ok 4s | ok 11s |
+| [reference-hdri](images/reference-hdri.png) | ok 1s | ok 4s | ok 4s | ok 4s | ok 11s | ok 2s | ok 3s | ok 24s | ok 21s | ok 5s | ok 13s | ok 7s | ok 2s | ok 10s |
+| sample-getInfo | ok 1s | ok 2s | ok 2s | ok 2s | ok 3s | ok 1s | ok 1s | ok 5s | ok 4s | ok 1s | ok 3s | ok 2s | ok 1s | ok 1s |
+| [sample01](images/sample01.png) | ok 1s | ok 3s | ok 4s | ok 4s | ok 6s | ok 2s | ok 2s | ok 29s | ok 13s | ok 6s | ok 5s | ok 8s | ok 2s | ok 11s |
+| [sample01_with_texture](images/sample01_with_texture.png) | ok 1s | ok 2s | ok 2s | ok 2s | ok 4s | ok 4s | ok 2s | ok 20s | ok 9s | ok 7s | ok 4s | ok 7s | ok 2s | ok 10s |
+| [sample02](images/sample02.png) | ok 2s | ok 4s | ok 5s | ok 4s | ok 13s | ok 4s | ok 5s | ok 31s | ok 23s | ok 12s | ok 10s | ok 10s | ok 3s | ok 13s |
+| [sample03](images/sample03.png) | ok 1s | ok 6s | ok 8s | ok 9s | ok 46s | ok 109s | ok 365s | ok 390s | ok 89s | ok 19s | ok 184s | ok 44s | ok 17s | ok 249s |
+| [sample03-isosurface](images/sample03-isosurface.png) | ok 1s | ok 14s | ok 11s | ok 4s | ok 12s | ok 3s | ok 19s | ok 47s | ok 135s | ok 6s | ok 56s | ok 32s | ok 5s | ok 72s |
+| [sample04](images/sample04.png) | ok 2s | ok 4s | ok 6s | ok 4s | ok 24s | ok 3s | ok 8s | ok 23s | ok 43s | ok 18s | ok 19s | ok 20s | ok 8s | ok 15s |
+| [sample04_pointLight](images/sample04_pointLight.png) | ok 3s | ok 4s | ok 5s | ok 4s | ok 21s | ok 3s | ok 8s | ok 28s | ok 38s | ok 19s | ok 18s | ok 33s | ok 8s | ok 15s |
+| [sample05](images/sample05.png) | ok 2s | ok 4s | ok 5s | ok 4s | ok 10s | ok 4s | ok 6s | ok 49s | ok 30s | ok 8s | ok 20s | ok 32s | ok 3s | ok 17s |
+| [sample06](images/sample06.png) | ok 1s | ok 2s | ok 3s | ok 3s | ok 5s | ok 2s | ok 2s | ok 24s | ok 10s | ok 4s | ok 8s | ok 27s | ok 2s | ok 5s |
+| [sample07](images/sample07.png) | ok 2s | ok 4s | ok 9s | ok 4s | ok 24s | ok 8s | ok 12s | ok 57s | ok 47s | ok 19s | ok 35s | ok 24s | ok 4s | ok 36s |
+| [sampler-image3d](images/sampler-image3d.png) | ok 2s | ok 5s | ok 8s | ok 4s | ok 15s | ok 3s | ok 14s | ok 198s | ok 45s | ok 7s | ok 34s | ok 66s | ok 4s | ok 62s |
+| [sampler-image3d-borderColor](images/sampler-image3d-borderColor.png) | ok 1s | ok 5s | ok 8s | ok 4s | ok 17s | ok 3s | ok 14s | ok 202s | ok 46s | ok 7s | ok 41s | ok 44s | ok 4s | ok 62s |
+| testing-release_00 | ok 1s | ok 1s | ok 17s | ok 1s | ok 2s | ok 1s | ok 1s | ok 6s | ok 21s | ok 2s | ok 1s | ok 3s | ok 0s | ok 1s |
+| testing-release_01 | ok 1s | ok 2s | ok 2s | ok 2s | ok 3s | ok 1s | ok 1s | ok 6s | ok 0s | ok 1s | ok 1s | ok 9s | ok 1s | ok 1s |
+| testing-release_02 | ok 1s | ok 2s | ok 2s | ok 2s | ok 2s | ok 1s | ok 1s | ok 6s | ok 1s | ok 1s | ok 1s | ok 2s | ok 0s | ok 1s |
+| testing-release_03 | ok 1s | ok 2s | ok 2s | ok 2s | ok 3s | ok 1s | ok 1s | ok 6s | ok 1s | ok 1s | ok 1s | ok 11s | ok 0s | ok 0s |
+| testing-release_04 | ok 1s | ok 2s | ok 2s | ok 2s | ok 2s | ok 1s | ok 1s | ok 6s | ok 1s | ok 1s | ok 1s | ok 3s | ok 1s | ok 0s |
+| testing-release_05 | ok 1s | ok 2s | ok 2s | ok 2s | ok 1s | ok 1s | ok 1s | ok 6s | ok 1s | ok 1s | ok 1s | ok 14s | ok 1s | ok 0s |
+| [unstructured-cellCentric](images/unstructured-cellCentric.png) | ok 1s | ok 2s | ok 5s | ok 8s | ok 44s | ok 11s | ok 21s | ok 18s | ok 45s | ok 33s | ok 14s | ok 18s | ok 2s | ok 7s |
+| [unstructured-vertexCentric](images/unstructured-vertexCentric.png) | ok 1s | ok 2s | ok 5s | ok 8s | ok 44s | ok 11s | ok 20s | ok 19s | ok 21s | ok 31s | ok 17s | ok 16s | ok 2s | ok 7s |
+| [viewer-sample01](images/viewer-sample01.png) | ok 1s | ok 2s | ok 3s | ok 2s | ok 2s | ok 1s | ok 1s | ok 4s | ok 1s | ok 1s | ok 1s | ok 15s | ok 1s | ok 1s |
+| [viewer-sample02](images/viewer-sample02.png) | ok 1s | ok 2s | ok 3s | ok 2s | ok 2s | ok 3s | ok 2s | ok 6s | ok 4s | ok 2s | ok 2s | ok 21s | ok 2s | ok 1s |
+| [viewer-sample05](images/viewer-sample05.png) | ok 1s | ok 2s | ok 2s | ok 2s | ok 3s | ok 2s | ok 2s | ok 4s | ok 4s | ok 1s | ok 2s | ok 7s | ok 1s | ok 1s |
+| [viewer-sample07](images/viewer-sample07.png) | ok 1s | ok 2s | ok 3s | ok 2s | ok 2s | ok 4s | ok 2s | ok 3s | ok 2s | ok 1s | ok 1s | ok 8s | ok 1s | ok 1s |
 
 504 of 504 runs passed.
 
@@ -377,7 +385,6 @@ features. These differences remain:
   * helide (the minimal reference device): `hdri` light, isosurface, `unstructured` field.
   * VisRTX: `unstructured` field.
   * MoonRay: isosurface, `image3D` sampler, `unstructured` field.
-  * Mitsuba: `image3D` sampler.
   * OSPRay: `image3D` sampler.
   * Radeon ProRender: `unstructured` field.
   * Photon: `unstructured` field.
@@ -387,8 +394,8 @@ features. These differences remain:
   * VisRTX and OSPRay add both, as the specification describes two independent lights, so
     the mirror sphere saturates to white.
 * **Visionaray** is an experimental device (its own README calls it a playground).
-  * The ambient light only lights diffuse surfaces: metals and glass lit by it alone are
-    dark (`sample02`, `sample04`, `sample05`).
+  * Glass does not transmit the ambient light: lit by it alone, a `transmission` material
+    renders as an opaque white surface (`sample02`, `interactive-bobblespheres3`).
   * `curve` segments are cones with flat ends, not rounded at the joints (`sample07`).
 * **Tessellated primitives.** Photon only traces triangles and Radeon ProRender has no
   cylinders, cones or curves: these are tessellated. With a million spheres
@@ -449,8 +456,9 @@ device repositories, and none of it is committed.
   * In the white-furnace test barney gave 1.29 instead of 0.50; it now gives 0.501.
 
 **Mitsuba**
-* An unsupported sampler failed the whole frame. `image1D` is now implemented, and
-  `image3D` warns.
+* An unsupported sampler failed the whole frame. `image1D` is now implemented, and so is
+  `image3D` for samplers driven by `worldPosition` or `objectPosition`
+  (`sampler-image3d*`).
 * An hdri together with ambient light failed ("Only one environment emitter").
 * `specular = 0` produced NaNs in `scalar_rgb` (`sample04`/`05`/`06`), so those runs timed
   out.
@@ -470,6 +478,8 @@ device repositories, and none of it is committed.
 * Clear glass (`transmission`) rendered as an opaque white surface.
 * New features: depth of field, curves rendered round, cylinders, cones, `image1D`.
   Default sampling is about twice as fast.
+* `moonray.executionMode = xpu` always fell back to the CPU: MoonRay looks for its GPU
+  programs in `REZ_MOONRAY_ROOT`, which the device now sets to its own package.
 
 **helide / ANARI SDK (helium)**
 * `Array::valueAtLinear` read one element past the end of an array at coordinate 1.0. This
@@ -495,6 +505,12 @@ device repositories, and none of it is committed.
 * New feature: `curve` geometry (`sample04`, `sample07`); the device advertised the
   extension without implementing it. Light units were fixed too, see the Blender ANARI
   documentation.
+* Bounce rays that left the scene saw no ambient light: mirrors and glossy metals lit by
+  the ambient light alone reflected a black sky (`interactive-bobblespheres3`).
+* CPU device: a geometry made of several cones or cylinders cast no shadows on itself
+  (`geometry-cones*`, `geometry-cylinders*`). A shadow ray that started on a cap stopped
+  at its own primitive, because the BVH traversal of the Visionaray library took a hit
+  behind the ray origin.
 
 **anari-ospray**
 * anari-ospray relies on the Principled parameter `specularMetallic` of the unreleased
@@ -504,6 +520,9 @@ device repositories, and none of it is committed.
 * The default infinite `attenuationDistance` turned thin-walled glass black.
 * `unitDistance` of `transferFunction1D` was ignored (`sample03` rendered a faint volume).
 * A visible hdri and the renderer background were added up.
+* OSPRay 3.2 picks the coarsest MIP level for texture lookups on spheres: the `image1D`
+  color map of `geometry-spheres-with-sampler1D` gave every sphere the average color of
+  the map. MIP map generation is now disabled.
 
 **RadeonProRenderANARI**
 * The device was written in 2022 for a pre-1.0 ANARI SDK and did not build any more. It

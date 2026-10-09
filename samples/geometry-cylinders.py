@@ -61,6 +61,9 @@ mat.setParameter("baseColor",anari.float3,(.3,.3,.5))
 mat.setParameter("metallic",anari.float,.5)
 mat.setParameter("roughness",anari.float,.2)
 mat.commitParameters();
+# ANARI cylinders are open by default ('caps' = "none"); this model is built
+# from closed ones.
+cylinders.setParameter('caps', anari.STRING, 'both')
 cylinders.commitParameters()
 
 surface = device.newSurface()

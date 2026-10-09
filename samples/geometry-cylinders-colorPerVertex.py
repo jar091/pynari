@@ -87,6 +87,9 @@ else:
     
 mat.setParameter("baseColor",anari.STRING,"color")
 mat.commitParameters();
+# ANARI cylinders are open by default ('caps' = "none"); this model is built
+# from closed ones.
+cylinders.setParameter('caps', anari.STRING, 'both')
 cylinders.commitParameters()
 
 surface = device.newSurface()

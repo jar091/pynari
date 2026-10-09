@@ -43,9 +43,10 @@ color =  np.array([
   0.5, 0.9, 0.5, 1.0
 ], dtype = np.float32)
 
+# both triangles wound the same way, so that they face the same side
 index = np.array([
   0, 1, 2,
-  1, 2, 3
+  1, 3, 2
 ], dtype = np.uint32)
 
 print('@pynari: -------------------------------------------------------')
