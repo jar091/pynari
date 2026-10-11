@@ -144,3 +144,7 @@ configurations ran two to four jobs in parallel, next to other tests and builds.
   inside of Blender, see the Blender ANARI documentation.
 * **Mitsuba** needed a fix in mitsuba-anari for `cuda_ad_rgb` (the shutdown of Dr.Jit
   between two devices); both variants pass all 36 samples with it.
+
+## Development
+
+AI agent harnesses were used for selected development, testing, and optimization tasks

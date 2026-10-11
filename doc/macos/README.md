@@ -117,3 +117,7 @@ headless by the tools of the Windows documentation. The images of `mitsuba_llvm`
 * **Mitsuba on LLVM** needs a `libLLVM.dylib` which exports only the C API when it runs
   inside of Blender; for pynari the one of Homebrew works. See the Blender ANARI
   documentation.
+
+## Development
+
+AI agent harnesses were used for selected development, testing, and optimization tasks

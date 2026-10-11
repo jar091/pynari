@@ -536,3 +536,7 @@ device repositories, and none of it is committed.
 * Its ANARI layer was a stub, and it had not been built as a device on Windows. The device
   was rewritten on helium, and the path tracer's light transport was fixed (emissive and
   environment hits were counted twice). The Blender ANARI documentation has the details.
+
+## Development
+
+AI agent harnesses were used for selected development, testing, and optimization tasks
