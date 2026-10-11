@@ -23,8 +23,11 @@ what the results are:
 | `photon_cpu` | photon | Photon on the CPU: Kokkos Threads with Embree |
 
 How the devices themselves are built is described in the Blender ANARI documentation
-(`blenderphi/doc/anari/README.md`, section 4). Everything lives in `F:\work\anari`:
+(`blenderphi/doc/anari/WINDOWS.md`, section 4). Everything lives in `F:\work\anari`:
 sources side by side, builds in `build\`, installs in `install\`.
+
+The same samples were run on Linux and on macOS; what differs there is described in
+[`doc/linux/README.md`](../linux/README.md) and [`doc/macos/README.md`](../macos/README.md).
 
 Contents:
 
