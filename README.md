@@ -12,7 +12,7 @@ functionality, with just minor changes to make the API more "pythonic"
 those objects), as well as a bit more consice and readable.
 
 For a more complete example see, e.g.,
-https://github.com/ingowald/pynari/blob/master/sample01.py , but in
+https://github.com/jar091/pynari/blob/mjar/devel/samples/sample01.py , but in
 short, the syntax is about like this:
 
 ```
@@ -197,7 +197,7 @@ other backends may result in different results.
 
 ## Sample 1: A simple (bent) quad made of two triangles
 
-https://github.com/ingowald/pynari/blob/master/sample01.py
+https://github.com/jar091/pynari/blob/mjar/devel/samples/sample01.py
 
 Mainly tests that 'triangles' geometry exists, and that backend can
 create/set Camera, World, and render a Frame.
@@ -206,7 +206,7 @@ create/set Camera, World, and render a Frame.
 
 ## Sample 2: A python version of Pete Shirley's "Ray Tracing in One Weekend" Scene
 
-https://github.com/ingowald/pynari/blob/master/sample02.py
+https://github.com/jar091/pynari/blob/mjar/devel/samples/sample02.py
 
 Mainly added for fun (and as tribute to Pete's work!), but also very
 useful in testing different material configurations for the ANARI
@@ -218,7 +218,7 @@ renderer can actually handle such effects. Also useful to test ANARI
 
 # Sample 3: A tiny structured volume
 
-https://github.com/ingowald/pynari/blob/master/sample03.py
+https://github.com/jar091/pynari/blob/mjar/devel/samples/sample03.py
 
 Mainly added to test structured volume data based volume rendering.
 In order to avoid any dependencies on external data files the created
@@ -238,7 +238,7 @@ lying around in your current working dir, you can also run
 
 # Sample 4: ANARI 'curves' geometry
 
-https://github.com/ingowald/pynari/blob/master/sample04.py
+https://github.com/jar091/pynari/blob/mjar/devel/samples/sample04.py
 
 Added to test 'curves' with per-vertex radius. Creates a set of
 different cubic curves, approximates them with linear (per-vertex)
@@ -250,7 +250,7 @@ curve segments, and creates appropriate ANARI 'curve' geometry.
 
 # Sample 5: ANARI PBR material test grid
 
-https://github.com/ingowald/pynari/blob/master/sample05.py
+https://github.com/jar091/pynari/blob/mjar/devel/samples/sample05.py
 
 Simple "materials-test" setup with grid of spheres that use a PBR material,
 with roughness and metallicness varying across those spheres.
@@ -260,7 +260,7 @@ with roughness and metallicness varying across those spheres.
 
 # Sample 6: MPI Data-Parallel ANARI Example
 
-https://github.com/ingowald/pynari/blob/master/sample06.py
+https://github.com/jar091/pynari/blob/mjar/devel/samples/sample06.py
 
 MPI-Data Parallel Rendering test. Requires to be started with MPI, and
 to use a "Data Parallel ANARI" capable ANARI device (such as 
@@ -280,7 +280,7 @@ mpirun -x ANARI_LIBRARY=barney -n 6 python3 ../sample06.py  -o sample06.png
 ## Prerequisites
 
 Obviously, you'll need pynari
-(http://github.com/ingowald/pynari). Pynari can be gotten in two ways:
+(https://github.com/jar091/pynari). Pynari can be gotten in two ways:
 through `pip`, or through a local build from this repo (see above).
 
 ## External Python Packages for the anariViewer
